@@ -1,32 +1,34 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
-using EdiFabric.Native.X12;
 
 namespace EdiFabric.Api.Azure
 {
     public interface ILocalModelsService
     {
-        void Load(string serial, string mapPath);
-        void LoadOnline(string serial);
+        /// <summary>Reads the local model map, map/map.json, when there is one. Without it, models come from the online spec library.</summary>
+        void Init(string? mapPath);
+
+        /// <summary>The model map for a serial, for set_map.</summary>
+        string MapFor(string serial);
     }
 
+    /// <summary>
+    /// The model map for each serial. With map/map.json, its models are used, and the serial becomes the default for every
+    /// other transaction unless the map names one. Without it, every model comes from the online spec library under that serial.
+    /// </summary>
     public class LocalModelsService : ILocalModelsService
     {
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
+        private JsonObject? _localMap;
 
-        public void LoadOnline(string serial)
+        public void Init(string? mapPath)
         {
-            var map = new JsonObject
+            if (string.IsNullOrEmpty(mapPath) || !File.Exists(mapPath))
             {
-                ["default"] = serial,
-                ["maps"] = new JsonObject(),
-            };
+                _localMap = null;
+                return;
+            }
 
-            EdiFabricX12.SetMap(map.ToJsonString(JsonOptions));
-        }
-
-        public void Load(string serial, string mapPath)
-        {
             var mapLocation = Path.GetDirectoryName(Path.GetFullPath(mapPath))
                 ?? throw new InvalidOperationException($"Can't resolve the directory for map file '{mapPath}'.");
 
@@ -43,10 +45,19 @@ namespace EdiFabric.Api.Azure
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(localMap["default"]?.GetValue<string>()))
-                localMap["default"] = serial;
+            _localMap = localMap;
+        }
 
-            EdiFabricX12.SetMap(localMap.ToJsonString(JsonOptions));
+        public string MapFor(string serial)
+        {
+            if (_localMap is null)
+                return new JsonObject { ["default"] = serial, ["maps"] = new JsonObject() }.ToJsonString(JsonOptions);
+
+            var map = _localMap.DeepClone().AsObject();
+            if (string.IsNullOrWhiteSpace(map["default"]?.GetValue<string>()))
+                map["default"] = serial;
+
+            return map.ToJsonString(JsonOptions);
         }
     }
 }

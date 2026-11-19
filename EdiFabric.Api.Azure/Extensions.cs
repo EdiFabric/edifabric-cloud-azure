@@ -62,6 +62,32 @@ internal static class Extensions
         return result;
     }
 
+    public static ParseParameters GetParseParams(this HttpRequestData req)
+    {
+        var result = new ParseParameters();
+        var query = req.ParseQuery();
+        if (query is null)
+            return result;
+
+        result.Mode = query.GetString("mode");
+        result.CharSet = query.GetString("charSet");
+        result.Config = query.GetString("config");
+
+        return result;
+    }
+
+    public static BuildParameters GetBuildParams(this HttpRequestData req)
+    {
+        var result = new BuildParameters();
+        var query = req.ParseQuery();
+        if (query is null)
+            return result;
+
+        result.Postfix = query.GetString("postfix");
+
+        return result;
+    }
+
     public static string? GetContentType(this HttpRequestData req)
     {
         if (req.Headers.TryGetValues("Content-Type", out var values))

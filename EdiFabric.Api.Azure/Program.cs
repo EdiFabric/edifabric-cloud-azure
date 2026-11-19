@@ -1,8 +1,11 @@
 using System.Runtime.InteropServices;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using EdiFabric.Api.Azure;
 using EdiFabric.Native.X12;
+using Microsoft.Azure.Functions.Worker.OpenTelemetry;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry;
 
 var workerDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 if (string.IsNullOrEmpty(workerDirectory))
@@ -11,10 +14,14 @@ if (string.IsNullOrEmpty(workerDirectory))
 PrependNativeLibrarySearchPath(workerDirectory);
 
 var host = new HostBuilder()
-                .ConfigureFunctionsWorkerDefaults()
+                .ConfigureFunctionsWebApplication()
                 .ConfigureServices(s =>
                 {
                     s.AddSingleton<ILocalModelsService, LocalModelsService>();
+
+                    //  Sends logs, traces and metrics to Application Insights when the Function App has one.
+                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING")))
+                        s.AddOpenTelemetry().UseFunctionsWorkerDefaults().UseAzureMonitorExporter();
                 })
                 .Build();
 
@@ -36,14 +43,10 @@ catch (DllNotFoundException ex)
         ex);
 }
 
-EdiFabricX12.SetSerial(Configuration.ApiKey);
-
+//  Local models in map/map.json, if there are any, then the license and model map of the configured serial.
 var localModels = host.Services.GetRequiredService<ILocalModelsService>();
-var mapPath = Path.Combine(workerDirectory, "map", "map.json");
-if (File.Exists(mapPath))
-    localModels.Load(Configuration.ApiKey, mapPath);
-else
-    localModels.LoadOnline(Configuration.ApiKey);
+localModels.Init(Path.Combine(workerDirectory, "map", "map.json"));
+SerialGate.Init(localModels, Configuration.ApiKey);
 
 host.Run();
 

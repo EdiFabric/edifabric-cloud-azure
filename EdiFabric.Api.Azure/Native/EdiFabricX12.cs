@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace EdiFabric.Native.X12;
 
@@ -30,6 +32,9 @@ public enum EdiFabricErrorCode
 {
     Success = 0,
     InsufficientCapacity = 1,
+    Unknown = 501,
+    NoConnection = 502,
+    ModelMapInvalid = 503,
     IncorrectInput = 611,
     LoggerInitialization = 612,
     MapDeserialization = 613,
@@ -55,6 +60,10 @@ public enum EdiFabricErrorCode
     MaxLicensesExceeded = 633,
     LicenseSnapshotMissing = 634,
     LicenseNotSet = 635,
+    RateExceeded = 636,
+    InvalidJson = 637,
+    IncorrectLicense = 638,
+    LicenseQuotaExceeded = 639,
 }
 
 /// <summary>Thrown when a native call returns a non-zero status code.</summary>
@@ -75,6 +84,23 @@ public sealed class EdiFabricException : Exception
     public string NativeMessage { get; }
 
     /// <summary>The C entry point that failed.</summary>
+    public string Api { get; }
+}
+
+/// <summary>Thrown when a parse or build output would exceed the caller's size limit.</summary>
+public sealed class EdiFabricOutputLimitException : Exception
+{
+    public EdiFabricOutputLimitException(int limit, string api)
+        : base($"{api}: the output exceeds the limit of {limit / (1024 * 1024)} MB.")
+    {
+        Limit = limit;
+        Api = api;
+    }
+
+    /// <summary>The maximum output size in bytes.</summary>
+    public int Limit { get; }
+
+    /// <summary>The C entry point whose output was too large.</summary>
     public string Api { get; }
 }
 
@@ -113,6 +139,7 @@ public static class EdiFabricX12
 
     private static bool _freeErrorMissing;
 
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
     /// <summary>
     /// Explicit path to the native library, either the file itself or its folder.
     /// Set this before the first call. EDIFABRIC_X12_LIB is used when it is null.
@@ -159,13 +186,13 @@ public static class EdiFabricX12
     /* Licensing                                                           */
     /* ------------------------------------------------------------------ */
 
-    /// <summary>Registers this machine once. Requires internet access.</summary>
-    public static unsafe void InstallLicense(string serial)
+    /// <summary>Caches a token for runtime authorization against the license server. Retrieves a new token if the cached token expires within the specified number of seconds.</summary>
+    public static unsafe void EnsureToken(string serial, int seconds)
     {
         var bytes = Encoding.UTF8.GetBytes(serial);
         fixed (byte* pointer = bytes)
         {
-            Check(NativeMethods.InstallLicense(pointer, bytes.Length), "install_license");
+            Check(NativeMethods.EnsureToken(pointer, bytes.Length, seconds), "ensure_token");
         }
     }
 
@@ -273,6 +300,16 @@ public static class EdiFabricX12
         }
     }
 
+    public static void SetOnlineMap(string serial)
+    {
+        var map = new JsonObject
+        {
+            ["default"] = serial
+        };
+
+        SetMap(map.ToJsonString());
+    }
+
     /* ------------------------------------------------------------------ */
     /* Parse, split, build, merge                                          */
     /* ------------------------------------------------------------------ */
@@ -282,10 +319,21 @@ public static class EdiFabricX12
         => Parse(Encoding.UTF8.GetBytes(edi), mode, config, capacity);
 
     /// <summary>Parses a whole interchange.</summary>
-    public static unsafe ParseResult Parse(ReadOnlySpan<byte> edi, ParseMode mode = ParseMode.Json, string? config = null, int capacity = 0)
+    public static ParseResult Parse(ReadOnlySpan<byte> edi, ParseMode mode = ParseMode.Json, string? config = null, int capacity = 0)
+    {
+        var (output, length, offset) = ParseUtf8(edi, mode, config, capacity);
+        return new ParseResult(Encoding.UTF8.GetString(output, 0, length), offset);
+    }
+
+    /// <summary>
+    /// Parses a whole interchange and returns the UTF-8 output undecoded.
+    /// The payload is <c>Output[..Length]</c>; the validation section starts at <c>Offset</c> (0 in mode 1).
+    /// Throws <see cref="EdiFabricOutputLimitException"/> when the output would exceed <paramref name="maxCapacity"/> bytes.
+    /// </summary>
+    public static unsafe (byte[] Output, int Length, int Offset) ParseUtf8(ReadOnlySpan<byte> edi, ParseMode mode = ParseMode.Json, string? config = null, int capacity = 0, int maxCapacity = int.MaxValue)
     {
         var configBytes = config is null ? Array.Empty<byte>() : Encoding.UTF8.GetBytes(config);
-        var currentCapacity = capacity > 0 ? capacity : GrowthEstimate(edi.Length);
+        var currentCapacity = Math.Min(capacity > 0 ? capacity : GrowthEstimate(edi.Length), maxCapacity);
 
         while (true)
         {
@@ -308,12 +356,12 @@ public static class EdiFabricX12
 
             if (rc == InsufficientCapacity)
             {
-                currentCapacity = length > currentCapacity ? length : currentCapacity * 2;
+                currentCapacity = NextCapacity(currentCapacity, length, maxCapacity, "parse");
                 continue;
             }
 
             Check(rc, "parse");
-            return new ParseResult(Encoding.UTF8.GetString(output, 0, length), offset);
+            return (output, length, offset);
         }
     }
 
@@ -353,11 +401,21 @@ public static class EdiFabricX12
     /// Builds X12 EDI from transaction-set JSON. <paramref name="postfix"/> is appended
     /// after each segment terminator; pass null for compact output.
     /// </summary>
-    public static unsafe string Build(string json, string? postfix = null, int capacity = 0)
+    public static string Build(string json, string? postfix = null, int capacity = 0)
     {
-        var inputBytes = Encoding.UTF8.GetBytes(json);
+        var (output, length) = BuildUtf8(Encoding.UTF8.GetBytes(json), postfix, capacity);
+        return Encoding.UTF8.GetString(output, 0, length);
+    }
+
+    /// <summary>
+    /// Builds X12 EDI from UTF-8 transaction-set JSON and returns the UTF-8 output undecoded.
+    /// The payload is <c>Output[..Length]</c>.
+    /// Throws <see cref="EdiFabricOutputLimitException"/> when the output would exceed <paramref name="maxCapacity"/> bytes.
+    /// </summary>
+    public static unsafe (byte[] Output, int Length) BuildUtf8(ReadOnlySpan<byte> inputBytes, string? postfix = null, int capacity = 0, int maxCapacity = int.MaxValue)
+    {
         var postfixBytes = postfix is null ? null : Encoding.UTF8.GetBytes(postfix + "\0");
-        var currentCapacity = capacity > 0 ? capacity : Math.Max(4096, inputBytes.Length);
+        var currentCapacity = Math.Min(capacity > 0 ? capacity : Math.Max(4096, inputBytes.Length), maxCapacity);
 
         while (true)
         {
@@ -378,12 +436,12 @@ public static class EdiFabricX12
 
             if (rc == InsufficientCapacity)
             {
-                currentCapacity = length > currentCapacity ? length : currentCapacity * 2;
+                currentCapacity = NextCapacity(currentCapacity, length, maxCapacity, "build");
                 continue;
             }
 
             Check(rc, "build");
-            return Encoding.UTF8.GetString(output, 0, length);
+            return (output, length);
         }
     }
 
@@ -531,6 +589,20 @@ public static class EdiFabricX12
 
         /// <summary>The library file name for the current platform.</summary>
         public static string PlatformFileName => NativeMethods.PlatformFileName;
+    }
+
+    // The library reports the required size in length when it knows it; otherwise the buffer doubles.
+    private static int NextCapacity(int current, int reported, int maxCapacity, string api)
+    {
+        var known = reported > current;
+        var next = known ? reported : (int)Math.Min((long)current * 2, int.MaxValue);
+        if (next <= maxCapacity)
+            return next;
+
+        if (known || current >= maxCapacity)
+            throw new EdiFabricOutputLimitException(maxCapacity, api);
+
+        return maxCapacity;
     }
 
     private static int GrowthEstimate(int inputLength)

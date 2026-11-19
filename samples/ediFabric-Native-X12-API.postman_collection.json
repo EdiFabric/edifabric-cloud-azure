@@ -1,0 +1,405 @@
+{
+  "info": {
+    "name": "ediFabric Native X12 API (Azure Functions)",
+    "description": "The offline ediFabric Cloud v2 and v3 X12 operations of this example. Set baseUrl to where the API runs. serial is the demo serial, which has a small daily quota: replace it with yours.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "v2",
+      "item": [
+        {
+          "name": "Read X12",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/octet-stream"
+              },
+              {
+                "key": "Ocp-Apim-Subscription-Key",
+                "value": "{{serial}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "ISA*00*          *00*          *ZZ*1234567        *ZZ*11111          *170508*1141*^*00501*000000101*1*P*:~\r\nGS*HC*XXXXXXX*XXXXX*20170617*1741*101*X*005010X222A1~\r\nST*837*0021*005010X222A1~\r\nBHT*0019*00*244579*20061015*1023*CH~\r\nNM1*41*2*PREMIER BILLING SERVICE*****46*TGJ23~\r\nPER*IC*JERRY*TE*3055552222*EX*231~\r\nNM1*40*2*KEY INSURANCE COMPANY*****46*66783JJT~\r\nHL*1**20*1~\r\nPRV*BI*PXC*203BF0100Y~\r\nNM1*85*2*BEN KILDARE SERVICE*****XX*9876543210~\r\nN3*234 SEAWAY ST~\r\nN4*MIAMI*FL*33111~\r\nREF*EI*587654321~\r\nNM1*87*2*Kildare Associates~\r\nN3*2345 OCEAN BLVD~\r\nN4*MIAMI*FL*33111~\r\nHL*2*1*22*1~\r\nSBR*P**2222-SJ******CI~\r\nNM1*IL*1*SMITH*JANE****MI*JS00111223333~\r\nDMG*D8*19430501*F~\r\nNM1*PR*2*KEY INSURANCE COMPANY*****PI*999996666~\r\nREF*G2*KA6663~\r\nHL*3*2*23*0~\r\nPAT*19~\r\nNM1*QC*1*SMITH*TED~\r\nN3*236 N MAIN ST~\r\nN4*MIAMI*FL*33413~\r\nDMG*D8*19730501*M~\r\nCLM*26463774*100***11:B:1*Y*A*Y*I~\r\nREF*D9*17312345600006351~\r\nHI*BK:0340*BF:V7389~\r\nLX*1~\r\nSV1*HC:99213*40*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*2~\r\nSV1*HC:87070*15*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*3~\r\nSV1*HC:99214*35*UN*1***2~\r\nDTP*472*D8*20061010~\r\nLX*4~\r\nSV1*HC:86663*10*UN*1***2~\r\nDTP*472*D8*20061010~\r\nSE*42*0021~\r\nGE*1*101~\r\nIEA*1*000000101~\r\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/x12/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "x12",
+                "read"
+              ]
+            },
+            "description": "X12 in, transaction-set JSON out (v2)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Write X12",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Ocp-Apim-Subscription-Key",
+                "value": "{{serial}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"SegmentDelimiter\": \"~\",\n    \"DataElementDelimiter\": \"*\",\n    \"ISA\": {\n      \"AuthorizationInformationQualifier_1\": \"00\",\n      \"AuthorizationInformation_2\": \"          \",\n      \"SecurityInformationQualifier_3\": \"00\",\n      \"SecurityInformation_4\": \"          \",\n      \"SenderIDQualifier_5\": \"ZZ\",\n      \"InterchangeSenderID_6\": \"1234567        \",\n      \"ReceiverIDQualifier_7\": \"ZZ\",\n      \"InterchangeReceiverID_8\": \"11111          \",\n      \"InterchangeDate_9\": \"170508\",\n      \"InterchangeTime_10\": \"1141\",\n      \"InterchangeControlStandardsIdentifier_11\": \"^\",\n      \"InterchangeControlVersionNumber_12\": \"00501\",\n      \"InterchangeControlNumber_13\": \"000000101\",\n      \"AcknowledgementRequested_14\": \"1\",\n      \"UsageIndicator_15\": \"P\",\n      \"ComponentElementSeparator_16\": \":\"\n    },\n    \"Groups\": [\n      {\n        \"GS\": {\n          \"CodeIdentifyingInformationType_1\": \"HC\",\n          \"SenderIDCode_2\": \"XXXXXXX\",\n          \"ReceiverIDCode_3\": \"XXXXX\",\n          \"Date_4\": \"20170617\",\n          \"Time_5\": \"1741\",\n          \"GroupControlNumber_6\": \"101\",\n          \"TransactionTypeCode_7\": \"X\",\n          \"VersionAndRelease_8\": \"005010X222A1\"\n        },\n        \"Transactions\": [\n          {\n            \"ST\": {\n              \"TransactionSetIdentifierCode_01\": \"837\",\n              \"TransactionSetControlNumber_02\": \"0021\",\n              \"ImplementationConventionPreference_03\": \"005010X222A1\"\n            },\n            \"BHT_BeginningOfHierarchicalTransaction\": {\n              \"HierarchicalStructureCode_01\": \"0019\",\n              \"TransactionSetPurposeCode_02\": \"00\",\n              \"SubmitterTransactionIdentifier_03\": \"244579\",\n              \"TransactionSetCreationDate_04\": \"20061015\",\n              \"TransactionSetCreationTime_05\": \"1023\",\n              \"TransactionTypeCode_06\": \"CH\"\n            },\n            \"AllNM1\": {\n              \"Loop1000A\": {\n                \"NM1_SubmitterName\": {\n                  \"EntityIdentifierCode_01\": \"41\",\n                  \"EntityTypeQualifier_02\": \"2\",\n                  \"ResponseContactLastorOrganizationName_03\": \"PREMIER BILLING SERVICE\",\n                  \"IdentificationCodeQualifier_08\": \"46\",\n                  \"ResponseContactIdentifier_09\": \"TGJ23\"\n                },\n                \"PER_SubmitterEDIContactInformation\": [\n                  {\n                    \"ContactFunctionCode_01\": \"IC\",\n                    \"ResponseContactName_02\": \"JERRY\",\n                    \"CommunicationNumberQualifier_03\": \"TE\",\n                    \"ResponseContactCommunicationNumber_04\": \"3055552222\",\n                    \"CommunicationNumberQualifier_05\": \"EX\",\n                    \"ResponseContactCommunicationNumber_06\": \"231\"\n                  }\n                ]\n              },\n              \"Loop1000B\": {\n                \"NM1_ReceiverName\": {\n                  \"EntityIdentifierCode_01\": \"40\",\n                  \"EntityTypeQualifier_02\": \"2\",\n                  \"ResponseContactLastorOrganizationName_03\": \"KEY INSURANCE COMPANY\",\n                  \"IdentificationCodeQualifier_08\": \"46\",\n                  \"ResponseContactIdentifier_09\": \"66783JJT\"\n                }\n              }\n            },\n            \"Loop2000A\": [\n              {\n                \"HL_BillingProviderHierarchicalLevel\": {\n                  \"HierarchicalIDNumber_01\": \"1\",\n                  \"HierarchicalLevelCode_03\": \"20\",\n                  \"HierarchicalChildCode_04\": \"1\"\n                },\n                \"PRV_BillingProviderSpecialtyInformation\": {\n                  \"ProviderCode_01\": \"BI\",\n                  \"ReferenceIdentificationQualifier_02\": \"PXC\",\n                  \"ProviderTaxonomyCode_03\": \"203BF0100Y\"\n                },\n                \"AllNM1\": {\n                  \"Loop2010AA\": {\n                    \"NM1_BillingProviderName\": {\n                      \"EntityIdentifierCode_01\": \"85\",\n                      \"EntityTypeQualifier_02\": \"2\",\n                      \"ResponseContactLastorOrganizationName_03\": \"BEN KILDARE SERVICE\",\n                      \"IdentificationCodeQualifier_08\": \"XX\",\n                      \"ResponseContactIdentifier_09\": \"9876543210\"\n                    },\n                    \"N3_BillingProviderAddress\": {\n                      \"ResponseContactAddressLine_01\": \"234 SEAWAY ST\"\n                    },\n                    \"N4_BillingProviderCity_State_ZIPCode\": {\n                      \"AdditionalPatientInformationContactCityName_01\": \"MIAMI\",\n                      \"AdditionalPatientInformationContactStateCode_02\": \"FL\",\n                      \"AdditionalPatientInformationContactPostalZoneorZIPCode_03\": \"33111\"\n                    },\n                    \"AllREF\": {\n                      \"REF_BillingProviderTaxIdentification\": {\n                        \"ReferenceIdentificationQualifier_01\": \"EI\",\n                        \"MemberGrouporPolicyNumber_02\": \"587654321\"\n                      }\n                    }\n                  },\n                  \"Loop2010AB\": {\n                    \"NM1_Pay_AddressName\": {\n                      \"EntityIdentifierCode_01\": \"87\",\n                      \"EntityTypeQualifier_02\": \"2\",\n                      \"ResponseContactLastorOrganizationName_03\": \"Kildare Associates\"\n                    },\n                    \"N3_Pay_ToAddress_ADDRESS\": {\n                      \"ResponseContactAddressLine_01\": \"2345 OCEAN BLVD\"\n                    },\n                    \"N4_Pay_AddressCity_State_ZIPCode\": {\n                      \"AdditionalPatientInformationContactCityName_01\": \"MIAMI\",\n                      \"AdditionalPatientInformationContactStateCode_02\": \"FL\",\n                      \"AdditionalPatientInformationContactPostalZoneorZIPCode_03\": \"33111\"\n                    }\n                  }\n                },\n                \"Loop2000B\": [\n                  {\n                    \"HL_SubscriberHierarchicalLevel\": {\n                      \"HierarchicalIDNumber_01\": \"2\",\n                      \"HierarchicalParentIDNumber_02\": \"1\",\n                      \"HierarchicalLevelCode_03\": \"22\",\n                      \"HierarchicalChildCode_04\": \"1\"\n                    },\n                    \"SBR_SubscriberInformation\": {\n                      \"PayerResponsibilitySequenceNumberCode_01\": \"P\",\n                      \"InsuredGrouporPolicyNumber_03\": \"2222-SJ\",\n                      \"ClaimFilingIndicatorCode_09\": \"CI\"\n                    },\n                    \"AllNM1\": {\n                      \"Loop2010BA\": {\n                        \"NM1_SubscriberName\": {\n                          \"EntityIdentifierCode_01\": \"IL\",\n                          \"EntityTypeQualifier_02\": \"1\",\n                          \"ResponseContactLastorOrganizationName_03\": \"SMITH\",\n                          \"ResponseContactFirstName_04\": \"JANE\",\n                          \"IdentificationCodeQualifier_08\": \"MI\",\n                          \"ResponseContactIdentifier_09\": \"JS00111223333\"\n                        },\n                        \"DMG_SubscriberDemographicInformation\": {\n                          \"DateTimePeriodFormatQualifier_01\": \"D8\",\n                          \"DependentBirthDate_02\": \"19430501\",\n                          \"DependentGenderCode_03\": \"F\"\n                        }\n                      },\n                      \"Loop2010BB\": {\n                        \"NM1_PayerName\": {\n                          \"EntityIdentifierCode_01\": \"PR\",\n                          \"EntityTypeQualifier_02\": \"2\",\n                          \"ResponseContactLastorOrganizationName_03\": \"KEY INSURANCE COMPANY\",\n                          \"IdentificationCodeQualifier_08\": \"PI\",\n                          \"ResponseContactIdentifier_09\": \"999996666\"\n                        },\n                        \"AllREF\": {\n                          \"REF_BillingProviderSecondaryIdentification\": [\n                            {\n                              \"ReferenceIdentificationQualifier_01\": \"G2\",\n                              \"MemberGrouporPolicyNumber_02\": \"KA6663\"\n                            }\n                          ]\n                        }\n                      }\n                    },\n                    \"Loop2000C\": [\n                      {\n                        \"HL_PatientHierarchicalLevel\": {\n                          \"HierarchicalIDNumber_01\": \"3\",\n                          \"HierarchicalParentIDNumber_02\": \"2\",\n                          \"HierarchicalLevelCode_03\": \"23\",\n                          \"HierarchicalChildCode_04\": \"0\"\n                        },\n                        \"PAT_PatientInformation\": {\n                          \"IndividualRelationshipCode_01\": \"19\"\n                        },\n                        \"Loop2010CA\": {\n                          \"NM1_PatientName\": {\n                            \"EntityIdentifierCode_01\": \"QC\",\n                            \"EntityTypeQualifier_02\": \"1\",\n                            \"ResponseContactLastorOrganizationName_03\": \"SMITH\",\n                            \"ResponseContactFirstName_04\": \"TED\"\n                          },\n                          \"N3_PatientAddress\": {\n                            \"ResponseContactAddressLine_01\": \"236 N MAIN ST\"\n                          },\n                          \"N4_PatientCity_State_ZIPCode\": {\n                            \"AdditionalPatientInformationContactCityName_01\": \"MIAMI\",\n                            \"AdditionalPatientInformationContactStateCode_02\": \"FL\",\n                            \"AdditionalPatientInformationContactPostalZoneorZIPCode_03\": \"33413\"\n                          },\n                          \"DMG_PatientDemographicInformation\": {\n                            \"DateTimePeriodFormatQualifier_01\": \"D8\",\n                            \"DependentBirthDate_02\": \"19730501\",\n                            \"DependentGenderCode_03\": \"M\"\n                          }\n                        },\n                        \"Loop2300\": [\n                          {\n                            \"CLM_ClaimInformation\": {\n                              \"PatientControlNumber_01\": \"26463774\",\n                              \"TotalClaimChargeAmount_02\": \"100\",\n                              \"HealthCareServiceLocationInformation_05\": {\n                                \"FacilityTypeCode_01\": \"11\",\n                                \"FacilityCodeQualifier_02\": \"B\",\n                                \"ClaimFrequencyTypeCode_03\": \"1\"\n                              },\n                              \"ProviderorSupplierSignatureIndicator_06\": \"Y\",\n                              \"AssignmentorPlanParticipationCode_07\": \"A\",\n                              \"BenefitsAssignmentCertificationIndicator_08\": \"Y\",\n                              \"ReleaseofInformationCode_09\": \"I\"\n                            },\n                            \"AllREF\": {\n                              \"REF_ClaimIdentifierForTransmissionIntermediaries\": {\n                                \"ReferenceIdentificationQualifier_01\": \"D9\",\n                                \"MemberGrouporPolicyNumber_02\": \"17312345600006351\"\n                              }\n                            },\n                            \"AllHI\": {\n                              \"HI_HealthCareDiagnosisCode\": {\n                                \"HealthCareCodeInformation_01\": {\n                                  \"CodeListQualifierCode_01\": \"BK\",\n                                  \"IndustryCode_02\": \"0340\"\n                                },\n                                \"HealthCareCodeInformation_02\": {\n                                  \"CodeListQualifierCode_01\": \"BF\",\n                                  \"IndustryCode_02\": \"V7389\"\n                                }\n                              }\n                            },\n                            \"Loop2400\": [\n                              {\n                                \"LX_ServiceLineNumber\": {\n                                  \"AssignedNumber_01\": \"1\"\n                                },\n                                \"SV1_ProfessionalService\": {\n                                  \"CompositeMedicalProcedureIdentifier_01\": {\n                                    \"ProductorServiceIDQualifier_01\": \"HC\",\n                                    \"ProcedureCode_02\": \"99213\"\n                                  },\n                                  \"LineItemChargeAmount_02\": \"40\",\n                                  \"UnitorBasisforMeasurementCode_03\": \"UN\",\n                                  \"ServiceUnitCount_04\": \"1\",\n                                  \"CompositeDiagnosisCodePointer_07\": {\n                                    \"DiagnosisCodePointer_01\": \"1\"\n                                  }\n                                },\n                                \"AllDTP\": {\n                                  \"DTP_Date_ServiceDate\": {\n                                    \"DateTimeQualifier_01\": \"472\",\n                                    \"DateTimePeriodFormatQualifier_02\": \"D8\",\n                                    \"DateTimePeriod_03\": \"20061003\"\n                                  }\n                                }\n                              },\n                              {\n                                \"LX_ServiceLineNumber\": {\n                                  \"AssignedNumber_01\": \"2\"\n                                },\n                                \"SV1_ProfessionalService\": {\n                                  \"CompositeMedicalProcedureIdentifier_01\": {\n                                    \"ProductorServiceIDQualifier_01\": \"HC\",\n                                    \"ProcedureCode_02\": \"87070\"\n                                  },\n                                  \"LineItemChargeAmount_02\": \"15\",\n                                  \"UnitorBasisforMeasurementCode_03\": \"UN\",\n                                  \"ServiceUnitCount_04\": \"1\",\n                                  \"CompositeDiagnosisCodePointer_07\": {\n                                    \"DiagnosisCodePointer_01\": \"1\"\n                                  }\n                                },\n                                \"AllDTP\": {\n                                  \"DTP_Date_ServiceDate\": {\n                                    \"DateTimeQualifier_01\": \"472\",\n                                    \"DateTimePeriodFormatQualifier_02\": \"D8\",\n                                    \"DateTimePeriod_03\": \"20061003\"\n                                  }\n                                }\n                              },\n                              {\n                                \"LX_ServiceLineNumber\": {\n                                  \"AssignedNumber_01\": \"3\"\n                                },\n                                \"SV1_ProfessionalService\": {\n                                  \"CompositeMedicalProcedureIdentifier_01\": {\n                                    \"ProductorServiceIDQualifier_01\": \"HC\",\n                                    \"ProcedureCode_02\": \"99214\"\n                                  },\n                                  \"LineItemChargeAmount_02\": \"35\",\n                                  \"UnitorBasisforMeasurementCode_03\": \"UN\",\n                                  \"ServiceUnitCount_04\": \"1\",\n                                  \"CompositeDiagnosisCodePointer_07\": {\n                                    \"DiagnosisCodePointer_01\": \"2\"\n                                  }\n                                },\n                                \"AllDTP\": {\n                                  \"DTP_Date_ServiceDate\": {\n                                    \"DateTimeQualifier_01\": \"472\",\n                                    \"DateTimePeriodFormatQualifier_02\": \"D8\",\n                                    \"DateTimePeriod_03\": \"20061010\"\n                                  }\n                                }\n                              },\n                              {\n                                \"LX_ServiceLineNumber\": {\n                                  \"AssignedNumber_01\": \"4\"\n                                },\n                                \"SV1_ProfessionalService\": {\n                                  \"CompositeMedicalProcedureIdentifier_01\": {\n                                    \"ProductorServiceIDQualifier_01\": \"HC\",\n                                    \"ProcedureCode_02\": \"86663\"\n                                  },\n                                  \"LineItemChargeAmount_02\": \"10\",\n                                  \"UnitorBasisforMeasurementCode_03\": \"UN\",\n                                  \"ServiceUnitCount_04\": \"1\",\n                                  \"CompositeDiagnosisCodePointer_07\": {\n                                    \"DiagnosisCodePointer_01\": \"2\"\n                                  }\n                                },\n                                \"AllDTP\": {\n                                  \"DTP_Date_ServiceDate\": {\n                                    \"DateTimeQualifier_01\": \"472\",\n                                    \"DateTimePeriodFormatQualifier_02\": \"D8\",\n                                    \"DateTimePeriod_03\": \"20061010\"\n                                  }\n                                }\n                              }\n                            ]\n                          }\n                        ]\n                      }\n                    ]\n                  }\n                ]\n              }\n            ],\n            \"SE\": {\n              \"NumberofIncludedSegments_01\": \"42\",\n              \"TransactionSetControlNumber_02\": \"0021\"\n            },\n            \"Model\": \"EdiNation.X12.HIPAA.005010\"\n          }\n        ],\n        \"GE\": {\n          \"NumberOfIncludedSets_1\": \"1\",\n          \"GroupControlNumber_2\": \"101\"\n        }\n      }\n    ],\n    \"IEA\": {\n      \"NumberOfIncludedGroups_1\": \"1\",\n      \"InterchangeControlNumber_2\": \"000000101\"\n    }\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/x12/write?postfix=%0D%0A",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "x12",
+                "write"
+              ],
+              "query": [
+                {
+                  "key": "postfix",
+                  "value": "%0D%0A"
+                }
+              ]
+            },
+            "description": "JSON in, X12 out (v2)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validate X12",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/octet-stream"
+              },
+              {
+                "key": "Ocp-Apim-Subscription-Key",
+                "value": "{{serial}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "ISA*00*          *00*          *ZZ*1234567        *ZZ*11111          *170508*1141*^*00501*000000101*1*P*:~\r\nGS*HC*XXXXXXX*XXXXX*20170617*1741*101*X*005010X222A1~\r\nST*837*0021*005010X222A1~\r\nBHT*0019*00*244579*20061015*1023*CH~\r\nNM1*41*2*PREMIER BILLING SERVICE*****46*TGJ23~\r\nPER*IC*JERRY*TE*3055552222*EX*231~\r\nNM1*40*2*KEY INSURANCE COMPANY*****46*66783JJT~\r\nHL*1**20*1~\r\nPRV*BI*PXC*203BF0100Y~\r\nNM1*85*2*BEN KILDARE SERVICE*****XX*9876543210~\r\nN3*234 SEAWAY ST~\r\nN4*MIAMI*FL*33111~\r\nREF*EI*587654321~\r\nNM1*87*2*Kildare Associates~\r\nN3*2345 OCEAN BLVD~\r\nN4*MIAMI*FL*33111~\r\nHL*2*1*22*1~\r\nSBR*P**2222-SJ******CI~\r\nNM1*IL*1*SMITH*JANE****MI*JS00111223333~\r\nDMG*D8*19430501*F~\r\nNM1*PR*2*KEY INSURANCE COMPANY*****PI*999996666~\r\nREF*G2*KA6663~\r\nHL*3*2*23*0~\r\nPAT*19~\r\nNM1*QC*1*SMITH*TED~\r\nN3*236 N MAIN ST~\r\nN4*MIAMI*FL*33413~\r\nDMG*D8*19730501*M~\r\nCLM*26463774*100***11:B:1*Y*A*Y*I~\r\nREF*D9*17312345600006351~\r\nHI*BK:0340*BF:V7389~\r\nLX*1~\r\nSV1*HC:99213*40*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*2~\r\nSV1*HC:87070*15*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*3~\r\nSV1*HC:99214*35*UN*1***2~\r\nDTP*472*D8*20061010~\r\nLX*4~\r\nSV1*HC:86663*10*UN*1***2~\r\nDTP*472*D8*20061010~\r\nSE*42*0021~\r\nGE*1*101~\r\nIEA*1*000000101~\r\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/x12/validate?snipLevel=4",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "x12",
+                "validate"
+              ],
+              "query": [
+                {
+                  "key": "snipLevel",
+                  "value": "4"
+                }
+              ]
+            },
+            "description": "X12 in, validation report out (v2)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Acknowledge X12",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/octet-stream"
+              },
+              {
+                "key": "Ocp-Apim-Subscription-Key",
+                "value": "{{serial}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "ISA*00*          *00*          *ZZ*1234567        *ZZ*11111          *170508*1141*^*00501*000000101*1*P*:~\r\nGS*HC*XXXXXXX*XXXXX*20170617*1741*101*X*005010X222A1~\r\nST*837*0021*005010X222A1~\r\nBHT*0019*00*244579*20061015*1023*CH~\r\nNM1*41*2*PREMIER BILLING SERVICE*****46*TGJ23~\r\nPER*IC*JERRY*TE*3055552222*EX*231~\r\nNM1*40*2*KEY INSURANCE COMPANY*****46*66783JJT~\r\nHL*1**20*1~\r\nPRV*BI*PXC*203BF0100Y~\r\nNM1*85*2*BEN KILDARE SERVICE*****XX*9876543210~\r\nN3*234 SEAWAY ST~\r\nN4*MIAMI*FL*33111~\r\nREF*EI*587654321~\r\nNM1*87*2*Kildare Associates~\r\nN3*2345 OCEAN BLVD~\r\nN4*MIAMI*FL*33111~\r\nHL*2*1*22*1~\r\nSBR*P**2222-SJ******CI~\r\nNM1*IL*1*SMITH*JANE****MI*JS00111223333~\r\nDMG*D8*19430501*F~\r\nNM1*PR*2*KEY INSURANCE COMPANY*****PI*999996666~\r\nREF*G2*KA6663~\r\nHL*3*2*23*0~\r\nPAT*19~\r\nNM1*QC*1*SMITH*TED~\r\nN3*236 N MAIN ST~\r\nN4*MIAMI*FL*33413~\r\nDMG*D8*19730501*M~\r\nCLM*26463774*100***11:B:1*Y*A*Y*I~\r\nREF*D9*17312345600006351~\r\nHI*BK:0340*BF:V7389~\r\nLX*1~\r\nSV1*HC:99213*40*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*2~\r\nSV1*HC:87070*15*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*3~\r\nSV1*HC:99214*35*UN*1***2~\r\nDTP*472*D8*20061010~\r\nLX*4~\r\nSV1*HC:86663*10*UN*1***2~\r\nDTP*472*D8*20061010~\r\nSE*42*0021~\r\nGE*1*101~\r\nIEA*1*000000101~\r\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/x12/ack",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "x12",
+                "ack"
+              ]
+            },
+            "description": "X12 in, validation report with a 999 out (v2)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "v3",
+      "item": [
+        {
+          "name": "Parse X12, mode 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/octet-stream"
+              },
+              {
+                "key": "Ocp-Apim-Subscription-Key",
+                "value": "{{serial}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "ISA*00*          *00*          *ZZ*1234567        *ZZ*11111          *170508*1141*^*00501*000000101*1*P*:~\r\nGS*HC*XXXXXXX*XXXXX*20170617*1741*101*X*005010X222A1~\r\nST*837*0021*005010X222A1~\r\nBHT*0019*00*244579*20061015*1023*CH~\r\nNM1*41*2*PREMIER BILLING SERVICE*****46*TGJ23~\r\nPER*IC*JERRY*TE*3055552222*EX*231~\r\nNM1*40*2*KEY INSURANCE COMPANY*****46*66783JJT~\r\nHL*1**20*1~\r\nPRV*BI*PXC*203BF0100Y~\r\nNM1*85*2*BEN KILDARE SERVICE*****XX*9876543210~\r\nN3*234 SEAWAY ST~\r\nN4*MIAMI*FL*33111~\r\nREF*EI*587654321~\r\nNM1*87*2*Kildare Associates~\r\nN3*2345 OCEAN BLVD~\r\nN4*MIAMI*FL*33111~\r\nHL*2*1*22*1~\r\nSBR*P**2222-SJ******CI~\r\nNM1*IL*1*SMITH*JANE****MI*JS00111223333~\r\nDMG*D8*19430501*F~\r\nNM1*PR*2*KEY INSURANCE COMPANY*****PI*999996666~\r\nREF*G2*KA6663~\r\nHL*3*2*23*0~\r\nPAT*19~\r\nNM1*QC*1*SMITH*TED~\r\nN3*236 N MAIN ST~\r\nN4*MIAMI*FL*33413~\r\nDMG*D8*19730501*M~\r\nCLM*26463774*100***11:B:1*Y*A*Y*I~\r\nREF*D9*17312345600006351~\r\nHI*BK:0340*BF:V7389~\r\nLX*1~\r\nSV1*HC:99213*40*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*2~\r\nSV1*HC:87070*15*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*3~\r\nSV1*HC:99214*35*UN*1***2~\r\nDTP*472*D8*20061010~\r\nLX*4~\r\nSV1*HC:86663*10*UN*1***2~\r\nDTP*472*D8*20061010~\r\nSE*42*0021~\r\nGE*1*101~\r\nIEA*1*000000101~\r\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/x12/parse?mode=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "x12",
+                "parse"
+              ],
+              "query": [
+                {
+                  "key": "mode",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "X12 in, JSON out. X-EdiFabric-Offset is 0."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Parse X12, mode 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/octet-stream"
+              },
+              {
+                "key": "Ocp-Apim-Subscription-Key",
+                "value": "{{serial}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "ISA*00*          *00*          *ZZ*1234567        *ZZ*11111          *170508*1141*^*00501*000000101*1*P*:~\r\nGS*HC*XXXXXXX*XXXXX*20170617*1741*101*X*005010X222A1~\r\nST*837*0021*005010X222A1~\r\nBHT*0019*00*244579*20061015*1023*CH~\r\nNM1*41*2*PREMIER BILLING SERVICE*****46*TGJ23~\r\nPER*IC*JERRY*TE*3055552222*EX*231~\r\nNM1*40*2*KEY INSURANCE COMPANY*****46*66783JJT~\r\nHL*1**20*1~\r\nPRV*BI*PXC*203BF0100Y~\r\nNM1*85*2*BEN KILDARE SERVICE*****XX*9876543210~\r\nN3*234 SEAWAY ST~\r\nN4*MIAMI*FL*33111~\r\nREF*EI*587654321~\r\nNM1*87*2*Kildare Associates~\r\nN3*2345 OCEAN BLVD~\r\nN4*MIAMI*FL*33111~\r\nHL*2*1*22*1~\r\nSBR*P**2222-SJ******CI~\r\nNM1*IL*1*SMITH*JANE****MI*JS00111223333~\r\nDMG*D8*19430501*F~\r\nNM1*PR*2*KEY INSURANCE COMPANY*****PI*999996666~\r\nREF*G2*KA6663~\r\nHL*3*2*23*0~\r\nPAT*19~\r\nNM1*QC*1*SMITH*TED~\r\nN3*236 N MAIN ST~\r\nN4*MIAMI*FL*33413~\r\nDMG*D8*19730501*M~\r\nCLM*26463774*100***11:B:1*Y*A*Y*I~\r\nREF*D9*17312345600006351~\r\nHI*BK:0340*BF:V7389~\r\nLX*1~\r\nSV1*HC:99213*40*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*2~\r\nSV1*HC:87070*15*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*3~\r\nSV1*HC:99214*35*UN*1***2~\r\nDTP*472*D8*20061010~\r\nLX*4~\r\nSV1*HC:86663*10*UN*1***2~\r\nDTP*472*D8*20061010~\r\nSE*42*0021~\r\nGE*1*101~\r\nIEA*1*000000101~\r\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/x12/parse?mode=2&config=%7B%22validate%22%3A%7B%22snip_level%22%3A4%7D%7D",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "x12",
+                "parse"
+              ],
+              "query": [
+                {
+                  "key": "mode",
+                  "value": "2"
+                },
+                {
+                  "key": "config",
+                  "value": "%7B%22validate%22%3A%7B%22snip_level%22%3A4%7D%7D"
+                }
+              ]
+            },
+            "description": "X12 in, JSON then the validation report out. Split the body at the byte offset in X-EdiFabric-Offset."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Parse X12, mode 3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/octet-stream"
+              },
+              {
+                "key": "Ocp-Apim-Subscription-Key",
+                "value": "{{serial}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "ISA*00*          *00*          *ZZ*1234567        *ZZ*11111          *170508*1141*^*00501*000000101*1*P*:~\r\nGS*HC*XXXXXXX*XXXXX*20170617*1741*101*X*005010X222A1~\r\nST*837*0021*005010X222A1~\r\nBHT*0019*00*244579*20061015*1023*CH~\r\nNM1*41*2*PREMIER BILLING SERVICE*****46*TGJ23~\r\nPER*IC*JERRY*TE*3055552222*EX*231~\r\nNM1*40*2*KEY INSURANCE COMPANY*****46*66783JJT~\r\nHL*1**20*1~\r\nPRV*BI*PXC*203BF0100Y~\r\nNM1*85*2*BEN KILDARE SERVICE*****XX*9876543210~\r\nN3*234 SEAWAY ST~\r\nN4*MIAMI*FL*33111~\r\nREF*EI*587654321~\r\nNM1*87*2*Kildare Associates~\r\nN3*2345 OCEAN BLVD~\r\nN4*MIAMI*FL*33111~\r\nHL*2*1*22*1~\r\nSBR*P**2222-SJ******CI~\r\nNM1*IL*1*SMITH*JANE****MI*JS00111223333~\r\nDMG*D8*19430501*F~\r\nNM1*PR*2*KEY INSURANCE COMPANY*****PI*999996666~\r\nREF*G2*KA6663~\r\nHL*3*2*23*0~\r\nPAT*19~\r\nNM1*QC*1*SMITH*TED~\r\nN3*236 N MAIN ST~\r\nN4*MIAMI*FL*33413~\r\nDMG*D8*19730501*M~\r\nCLM*26463774*100***11:B:1*Y*A*Y*I~\r\nREF*D9*17312345600006351~\r\nHI*BK:0340*BF:V7389~\r\nLX*1~\r\nSV1*HC:99213*40*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*2~\r\nSV1*HC:87070*15*UN*1***1~\r\nDTP*472*D8*20061003~\r\nLX*3~\r\nSV1*HC:99214*35*UN*1***2~\r\nDTP*472*D8*20061010~\r\nLX*4~\r\nSV1*HC:86663*10*UN*1***2~\r\nDTP*472*D8*20061010~\r\nSE*42*0021~\r\nGE*1*101~\r\nIEA*1*000000101~\r\n"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/x12/parse?mode=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "x12",
+                "parse"
+              ],
+              "query": [
+                {
+                  "key": "mode",
+                  "value": "3"
+                }
+              ]
+            },
+            "description": "X12 in, JSON then the validation report with the acknowledgment out. Split the body at the byte offset in X-EdiFabric-Offset."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Build X12",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Ocp-Apim-Subscription-Key",
+                "value": "{{serial}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"SegmentDelimiter\": \"~\",\n    \"DataElementDelimiter\": \"*\",\n    \"ISA\": {\n      \"AuthorizationInformationQualifier_1\": \"00\",\n      \"AuthorizationInformation_2\": \"          \",\n      \"SecurityInformationQualifier_3\": \"00\",\n      \"SecurityInformation_4\": \"          \",\n      \"SenderIDQualifier_5\": \"ZZ\",\n      \"InterchangeSenderID_6\": \"1234567        \",\n      \"ReceiverIDQualifier_7\": \"ZZ\",\n      \"InterchangeReceiverID_8\": \"11111          \",\n      \"InterchangeDate_9\": \"170508\",\n      \"InterchangeTime_10\": \"1141\",\n      \"InterchangeControlStandardsIdentifier_11\": \"^\",\n      \"InterchangeControlVersionNumber_12\": \"00501\",\n      \"InterchangeControlNumber_13\": \"000000101\",\n      \"AcknowledgementRequested_14\": \"1\",\n      \"UsageIndicator_15\": \"P\",\n      \"ComponentElementSeparator_16\": \":\"\n    },\n    \"Groups\": [\n      {\n        \"GS\": {\n          \"CodeIdentifyingInformationType_1\": \"HC\",\n          \"SenderIDCode_2\": \"XXXXXXX\",\n          \"ReceiverIDCode_3\": \"XXXXX\",\n          \"Date_4\": \"20170617\",\n          \"Time_5\": \"1741\",\n          \"GroupControlNumber_6\": \"101\",\n          \"TransactionTypeCode_7\": \"X\",\n          \"VersionAndRelease_8\": \"005010X222A1\"\n        },\n        \"Transactions\": [\n          {\n            \"ST\": {\n              \"TransactionSetIdentifierCode_01\": \"837\",\n              \"TransactionSetControlNumber_02\": \"0021\",\n              \"ImplementationConventionPreference_03\": \"005010X222A1\"\n            },\n            \"BHT_BeginningOfHierarchicalTransaction\": {\n              \"HierarchicalStructureCode_01\": \"0019\",\n              \"TransactionSetPurposeCode_02\": \"00\",\n              \"SubmitterTransactionIdentifier_03\": \"244579\",\n              \"TransactionSetCreationDate_04\": \"20061015\",\n              \"TransactionSetCreationTime_05\": \"1023\",\n              \"TransactionTypeCode_06\": \"CH\"\n            },\n            \"AllNM1\": {\n              \"Loop1000A\": {\n                \"NM1_SubmitterName\": {\n                  \"EntityIdentifierCode_01\": \"41\",\n                  \"EntityTypeQualifier_02\": \"2\",\n                  \"ResponseContactLastorOrganizationName_03\": \"PREMIER BILLING SERVICE\",\n                  \"IdentificationCodeQualifier_08\": \"46\",\n                  \"ResponseContactIdentifier_09\": \"TGJ23\"\n                },\n                \"PER_SubmitterEDIContactInformation\": [\n                  {\n                    \"ContactFunctionCode_01\": \"IC\",\n                    \"ResponseContactName_02\": \"JERRY\",\n                    \"CommunicationNumberQualifier_03\": \"TE\",\n                    \"ResponseContactCommunicationNumber_04\": \"3055552222\",\n                    \"CommunicationNumberQualifier_05\": \"EX\",\n                    \"ResponseContactCommunicationNumber_06\": \"231\"\n                  }\n                ]\n              },\n              \"Loop1000B\": {\n                \"NM1_ReceiverName\": {\n                  \"EntityIdentifierCode_01\": \"40\",\n                  \"EntityTypeQualifier_02\": \"2\",\n                  \"ResponseContactLastorOrganizationName_03\": \"KEY INSURANCE COMPANY\",\n                  \"IdentificationCodeQualifier_08\": \"46\",\n                  \"ResponseContactIdentifier_09\": \"66783JJT\"\n                }\n              }\n            },\n            \"Loop2000A\": [\n              {\n                \"HL_BillingProviderHierarchicalLevel\": {\n                  \"HierarchicalIDNumber_01\": \"1\",\n                  \"HierarchicalLevelCode_03\": \"20\",\n                  \"HierarchicalChildCode_04\": \"1\"\n                },\n                \"PRV_BillingProviderSpecialtyInformation\": {\n                  \"ProviderCode_01\": \"BI\",\n                  \"ReferenceIdentificationQualifier_02\": \"PXC\",\n                  \"ProviderTaxonomyCode_03\": \"203BF0100Y\"\n                },\n                \"AllNM1\": {\n                  \"Loop2010AA\": {\n                    \"NM1_BillingProviderName\": {\n                      \"EntityIdentifierCode_01\": \"85\",\n                      \"EntityTypeQualifier_02\": \"2\",\n                      \"ResponseContactLastorOrganizationName_03\": \"BEN KILDARE SERVICE\",\n                      \"IdentificationCodeQualifier_08\": \"XX\",\n                      \"ResponseContactIdentifier_09\": \"9876543210\"\n                    },\n                    \"N3_BillingProviderAddress\": {\n                      \"ResponseContactAddressLine_01\": \"234 SEAWAY ST\"\n                    },\n                    \"N4_BillingProviderCity_State_ZIPCode\": {\n                      \"AdditionalPatientInformationContactCityName_01\": \"MIAMI\",\n                      \"AdditionalPatientInformationContactStateCode_02\": \"FL\",\n                      \"AdditionalPatientInformationContactPostalZoneorZIPCode_03\": \"33111\"\n                    },\n                    \"AllREF\": {\n                      \"REF_BillingProviderTaxIdentification\": {\n                        \"ReferenceIdentificationQualifier_01\": \"EI\",\n                        \"MemberGrouporPolicyNumber_02\": \"587654321\"\n                      }\n                    }\n                  },\n                  \"Loop2010AB\": {\n                    \"NM1_Pay_AddressName\": {\n                      \"EntityIdentifierCode_01\": \"87\",\n                      \"EntityTypeQualifier_02\": \"2\",\n                      \"ResponseContactLastorOrganizationName_03\": \"Kildare Associates\"\n                    },\n                    \"N3_Pay_ToAddress_ADDRESS\": {\n                      \"ResponseContactAddressLine_01\": \"2345 OCEAN BLVD\"\n                    },\n                    \"N4_Pay_AddressCity_State_ZIPCode\": {\n                      \"AdditionalPatientInformationContactCityName_01\": \"MIAMI\",\n                      \"AdditionalPatientInformationContactStateCode_02\": \"FL\",\n                      \"AdditionalPatientInformationContactPostalZoneorZIPCode_03\": \"33111\"\n                    }\n                  }\n                },\n                \"Loop2000B\": [\n                  {\n                    \"HL_SubscriberHierarchicalLevel\": {\n                      \"HierarchicalIDNumber_01\": \"2\",\n                      \"HierarchicalParentIDNumber_02\": \"1\",\n                      \"HierarchicalLevelCode_03\": \"22\",\n                      \"HierarchicalChildCode_04\": \"1\"\n                    },\n                    \"SBR_SubscriberInformation\": {\n                      \"PayerResponsibilitySequenceNumberCode_01\": \"P\",\n                      \"InsuredGrouporPolicyNumber_03\": \"2222-SJ\",\n                      \"ClaimFilingIndicatorCode_09\": \"CI\"\n                    },\n                    \"AllNM1\": {\n                      \"Loop2010BA\": {\n                        \"NM1_SubscriberName\": {\n                          \"EntityIdentifierCode_01\": \"IL\",\n                          \"EntityTypeQualifier_02\": \"1\",\n                          \"ResponseContactLastorOrganizationName_03\": \"SMITH\",\n                          \"ResponseContactFirstName_04\": \"JANE\",\n                          \"IdentificationCodeQualifier_08\": \"MI\",\n                          \"ResponseContactIdentifier_09\": \"JS00111223333\"\n                        },\n                        \"DMG_SubscriberDemographicInformation\": {\n                          \"DateTimePeriodFormatQualifier_01\": \"D8\",\n                          \"DependentBirthDate_02\": \"19430501\",\n                          \"DependentGenderCode_03\": \"F\"\n                        }\n                      },\n                      \"Loop2010BB\": {\n                        \"NM1_PayerName\": {\n                          \"EntityIdentifierCode_01\": \"PR\",\n                          \"EntityTypeQualifier_02\": \"2\",\n                          \"ResponseContactLastorOrganizationName_03\": \"KEY INSURANCE COMPANY\",\n                          \"IdentificationCodeQualifier_08\": \"PI\",\n                          \"ResponseContactIdentifier_09\": \"999996666\"\n                        },\n                        \"AllREF\": {\n                          \"REF_BillingProviderSecondaryIdentification\": [\n                            {\n                              \"ReferenceIdentificationQualifier_01\": \"G2\",\n                              \"MemberGrouporPolicyNumber_02\": \"KA6663\"\n                            }\n                          ]\n                        }\n                      }\n                    },\n                    \"Loop2000C\": [\n                      {\n                        \"HL_PatientHierarchicalLevel\": {\n                          \"HierarchicalIDNumber_01\": \"3\",\n                          \"HierarchicalParentIDNumber_02\": \"2\",\n                          \"HierarchicalLevelCode_03\": \"23\",\n                          \"HierarchicalChildCode_04\": \"0\"\n                        },\n                        \"PAT_PatientInformation\": {\n                          \"IndividualRelationshipCode_01\": \"19\"\n                        },\n                        \"Loop2010CA\": {\n                          \"NM1_PatientName\": {\n                            \"EntityIdentifierCode_01\": \"QC\",\n                            \"EntityTypeQualifier_02\": \"1\",\n                            \"ResponseContactLastorOrganizationName_03\": \"SMITH\",\n                            \"ResponseContactFirstName_04\": \"TED\"\n                          },\n                          \"N3_PatientAddress\": {\n                            \"ResponseContactAddressLine_01\": \"236 N MAIN ST\"\n                          },\n                          \"N4_PatientCity_State_ZIPCode\": {\n                            \"AdditionalPatientInformationContactCityName_01\": \"MIAMI\",\n                            \"AdditionalPatientInformationContactStateCode_02\": \"FL\",\n                            \"AdditionalPatientInformationContactPostalZoneorZIPCode_03\": \"33413\"\n                          },\n                          \"DMG_PatientDemographicInformation\": {\n                            \"DateTimePeriodFormatQualifier_01\": \"D8\",\n                            \"DependentBirthDate_02\": \"19730501\",\n                            \"DependentGenderCode_03\": \"M\"\n                          }\n                        },\n                        \"Loop2300\": [\n                          {\n                            \"CLM_ClaimInformation\": {\n                              \"PatientControlNumber_01\": \"26463774\",\n                              \"TotalClaimChargeAmount_02\": \"100\",\n                              \"HealthCareServiceLocationInformation_05\": {\n                                \"FacilityTypeCode_01\": \"11\",\n                                \"FacilityCodeQualifier_02\": \"B\",\n                                \"ClaimFrequencyTypeCode_03\": \"1\"\n                              },\n                              \"ProviderorSupplierSignatureIndicator_06\": \"Y\",\n                              \"AssignmentorPlanParticipationCode_07\": \"A\",\n                              \"BenefitsAssignmentCertificationIndicator_08\": \"Y\",\n                              \"ReleaseofInformationCode_09\": \"I\"\n                            },\n                            \"AllREF\": {\n                              \"REF_ClaimIdentifierForTransmissionIntermediaries\": {\n                                \"ReferenceIdentificationQualifier_01\": \"D9\",\n                                \"MemberGrouporPolicyNumber_02\": \"17312345600006351\"\n                              }\n                            },\n                            \"AllHI\": {\n                              \"HI_HealthCareDiagnosisCode\": {\n                                \"HealthCareCodeInformation_01\": {\n                                  \"CodeListQualifierCode_01\": \"BK\",\n                                  \"IndustryCode_02\": \"0340\"\n                                },\n                                \"HealthCareCodeInformation_02\": {\n                                  \"CodeListQualifierCode_01\": \"BF\",\n                                  \"IndustryCode_02\": \"V7389\"\n                                }\n                              }\n                            },\n                            \"Loop2400\": [\n                              {\n                                \"LX_ServiceLineNumber\": {\n                                  \"AssignedNumber_01\": \"1\"\n                                },\n                                \"SV1_ProfessionalService\": {\n                                  \"CompositeMedicalProcedureIdentifier_01\": {\n                                    \"ProductorServiceIDQualifier_01\": \"HC\",\n                                    \"ProcedureCode_02\": \"99213\"\n                                  },\n                                  \"LineItemChargeAmount_02\": \"40\",\n                                  \"UnitorBasisforMeasurementCode_03\": \"UN\",\n                                  \"ServiceUnitCount_04\": \"1\",\n                                  \"CompositeDiagnosisCodePointer_07\": {\n                                    \"DiagnosisCodePointer_01\": \"1\"\n                                  }\n                                },\n                                \"AllDTP\": {\n                                  \"DTP_Date_ServiceDate\": {\n                                    \"DateTimeQualifier_01\": \"472\",\n                                    \"DateTimePeriodFormatQualifier_02\": \"D8\",\n                                    \"DateTimePeriod_03\": \"20061003\"\n                                  }\n                                }\n                              },\n                              {\n                                \"LX_ServiceLineNumber\": {\n                                  \"AssignedNumber_01\": \"2\"\n                                },\n                                \"SV1_ProfessionalService\": {\n                                  \"CompositeMedicalProcedureIdentifier_01\": {\n                                    \"ProductorServiceIDQualifier_01\": \"HC\",\n                                    \"ProcedureCode_02\": \"87070\"\n                                  },\n                                  \"LineItemChargeAmount_02\": \"15\",\n                                  \"UnitorBasisforMeasurementCode_03\": \"UN\",\n                                  \"ServiceUnitCount_04\": \"1\",\n                                  \"CompositeDiagnosisCodePointer_07\": {\n                                    \"DiagnosisCodePointer_01\": \"1\"\n                                  }\n                                },\n                                \"AllDTP\": {\n                                  \"DTP_Date_ServiceDate\": {\n                                    \"DateTimeQualifier_01\": \"472\",\n                                    \"DateTimePeriodFormatQualifier_02\": \"D8\",\n                                    \"DateTimePeriod_03\": \"20061003\"\n                                  }\n                                }\n                              },\n                              {\n                                \"LX_ServiceLineNumber\": {\n                                  \"AssignedNumber_01\": \"3\"\n                                },\n                                \"SV1_ProfessionalService\": {\n                                  \"CompositeMedicalProcedureIdentifier_01\": {\n                                    \"ProductorServiceIDQualifier_01\": \"HC\",\n                                    \"ProcedureCode_02\": \"99214\"\n                                  },\n                                  \"LineItemChargeAmount_02\": \"35\",\n                                  \"UnitorBasisforMeasurementCode_03\": \"UN\",\n                                  \"ServiceUnitCount_04\": \"1\",\n                                  \"CompositeDiagnosisCodePointer_07\": {\n                                    \"DiagnosisCodePointer_01\": \"2\"\n                                  }\n                                },\n                                \"AllDTP\": {\n                                  \"DTP_Date_ServiceDate\": {\n                                    \"DateTimeQualifier_01\": \"472\",\n                                    \"DateTimePeriodFormatQualifier_02\": \"D8\",\n                                    \"DateTimePeriod_03\": \"20061010\"\n                                  }\n                                }\n                              },\n                              {\n                                \"LX_ServiceLineNumber\": {\n                                  \"AssignedNumber_01\": \"4\"\n                                },\n                                \"SV1_ProfessionalService\": {\n                                  \"CompositeMedicalProcedureIdentifier_01\": {\n                                    \"ProductorServiceIDQualifier_01\": \"HC\",\n                                    \"ProcedureCode_02\": \"86663\"\n                                  },\n                                  \"LineItemChargeAmount_02\": \"10\",\n                                  \"UnitorBasisforMeasurementCode_03\": \"UN\",\n                                  \"ServiceUnitCount_04\": \"1\",\n                                  \"CompositeDiagnosisCodePointer_07\": {\n                                    \"DiagnosisCodePointer_01\": \"2\"\n                                  }\n                                },\n                                \"AllDTP\": {\n                                  \"DTP_Date_ServiceDate\": {\n                                    \"DateTimeQualifier_01\": \"472\",\n                                    \"DateTimePeriodFormatQualifier_02\": \"D8\",\n                                    \"DateTimePeriod_03\": \"20061010\"\n                                  }\n                                }\n                              }\n                            ]\n                          }\n                        ]\n                      }\n                    ]\n                  }\n                ]\n              }\n            ],\n            \"SE\": {\n              \"NumberofIncludedSegments_01\": \"42\",\n              \"TransactionSetControlNumber_02\": \"0021\"\n            },\n            \"Model\": \"EdiNation.X12.HIPAA.005010\"\n          }\n        ],\n        \"GE\": {\n          \"NumberOfIncludedSets_1\": \"1\",\n          \"GroupControlNumber_2\": \"101\"\n        }\n      }\n    ],\n    \"IEA\": {\n      \"NumberOfIncludedGroups_1\": \"1\",\n      \"InterchangeControlNumber_2\": \"000000101\"\n    }\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/x12/build?postfix=%0D%0A",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "x12",
+                "build"
+              ],
+              "query": [
+                {
+                  "key": "postfix",
+                  "value": "%0D%0A"
+                }
+              ]
+            },
+            "description": "v3 JSON in, X12 out. Include SE, GE and IEA with the correct counts."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:7071/api"
+    },
+    {
+      "key": "serial",
+      "value": "bd96a836feca45cb91c86ee65d281f52"
+    }
+  ]
+}

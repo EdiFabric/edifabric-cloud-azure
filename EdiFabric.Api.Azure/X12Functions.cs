@@ -28,4 +28,16 @@ public class X12Functions
     {
         return await _ediFunctions.Ack(req, executionContext.GetLogger<X12Functions>());
     }
+
+    [Function("x12parse")]
+    public async Task<HttpResponseData> Parse([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "x12/parse")] HttpRequestData req, FunctionContext executionContext)
+    {
+        return await _ediFunctions.Parse(req, executionContext.GetLogger<X12Functions>());
+    }
+
+    [Function("x12build")]
+    public async Task<HttpResponseData> Build([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "x12/build")] HttpRequestData req, FunctionContext executionContext)
+    {
+        return await _ediFunctions.Build(req, executionContext.GetLogger<X12Functions>());
+    }
 }
